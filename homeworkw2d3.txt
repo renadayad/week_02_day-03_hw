@@ -1,0 +1,238 @@
+///Q1
+
+package com.example.springday03.model;
+
+import lombok.*;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.*;
+
+@AllArgsConstructor @Data
+public class Park {
+    @NotNull(message = "rideID:should be not null")@Size(min = 2 ,message = "length more than 2")
+    private String rideID;
+    @NotNull(message = "rideName:should be not null")@Size(min = 4 ,message = "length more than 4")
+    private String rideName;
+    @Pattern (regexp ="rollercoaster|thriller|water",message = "can be select 3 value are rollercoaster,thriller and water ")@NotNull(message = "rideType:should be not null")
+    private String rideType;
+    @NotNull(message = "tickets:should be not null")@PositiveOrZero(message = "should be number")
+    private Integer  tickets;
+    @NotNull(message = "price:should be not null")@Positive(message = "should be number")
+    private double price;
+
+}
+//////////
+
+package com.example.springday03.controoller;
+
+import com.example.springday03.model.Park;
+import com.example.springday03.model.RequstApi;
+import com.example.springday03.model.Student;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+
+@RestController
+@RequestMapping("api/v1/park")
+public class Parkcontrooller {
+
+    ArrayList<Park> parks = new ArrayList<>();
+
+    @GetMapping
+    public ResponseEntity<ArrayList<Park>> getPark() {
+        return ResponseEntity.status(400).body(parks);
+    }
+
+    @PostMapping
+    public ResponseEntity addPark(@RequestBody @Valid Park p, Errors errors) {
+        if (errors.hasErrors()) {
+            return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
+        }
+        parks.add(p);
+
+        return ResponseEntity.status(200).body(new RequstApi("add new park", 200));
+
+    }
+
+    @PutMapping("/{index}")
+    public ResponseEntity e(@PathVariable int index,@RequestBody Park p) {
+
+        if (index > parks.size() - 1 ||index < 1)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RequstApi("invalid index", 400));
+        else
+            parks.set(index,p);
+        return ResponseEntity.status(201).body(new RequstApi("update park", 201));
+    }
+
+
+    @DeleteMapping("/{index}")
+    public ResponseEntity<RequstApi> d(@PathVariable Integer index) {
+        if (index > parks.size() - 1 || index < 1)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RequstApi("invaled index", 400));
+        else
+            parks.remove((int) index);
+        return ResponseEntity.status(200).body(new RequstApi("deleat park" + index, 200));
+    }
+
+
+    @PutMapping("/reducechecktickets/{id}/{amount}")
+    public ResponseEntity reducechecktickets(@RequestBody int amount, Park p) {
+        if (p.getTickets() > 0) {
+            p.setTickets((p.getTickets()) - 1);
+            return ResponseEntity.status(201).body(new RequstApi("ticket purchased", 201));
+        }
+        if (amount >= p.getPrice()) {
+            return ResponseEntity.status(400).body(new RequstApi("not ticket purchased", 400));
+        }
+        return ResponseEntity.status(400).body(new RequstApi("somthing wrong", 200));
+    }
+
+    @PutMapping("/checktickets/{id}/{amount}")
+    public ResponseEntity checktickets(@RequestBody int amount, Park p) {
+
+        if (p.getTickets()==0) {
+            return ResponseEntity.status(400).body(new RequstApi(" tickets numbers =0", 400));
+        }
+        if (p.getTickets() > 0) {
+            parks.add(p);
+            return ResponseEntity.status(201).body(new RequstApi("increase ticket", 201));
+
+        }
+        return ResponseEntity.status(400).body(new RequstApi("something wrong", 200));
+
+    }
+}
+///////////
+
+package com.example.springday03.model;
+
+public class RequstApi {
+    private String massege;
+    private int statuse;
+
+    public RequstApi(String massege, int statuse) {
+        this.massege = massege;
+        this.statuse = statuse;
+    }
+
+    public String getMassege() {
+        return massege;
+    }
+
+    public void setMassege(String massege) {
+        this.massege = massege;
+    }
+
+    public int getStatuse() {
+        return statuse;
+    }
+
+    public void setStatuse(int statuse) {
+        this.statuse = statuse;
+    }
+}
+
+
+
+//////Q2
+package com.example.springday03.model;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
+import javax.validation.constraints.*;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
+
+@AllArgsConstructor@Data
+public class Employes {
+    @NotNull(message = "id:should be not null")@Size(min = 2,message = "length name should be more than 2")
+    private String id;
+    @NotNull(message = "name:should be not null")@Size(min = 4,message = "length name should be more than 4")
+    private String name ;
+    @NotNull(message = "age:should be not null")@Max(value = 25)@Positive
+    private int age;
+    @AssertFalse private boolean onLeave;
+    @NotNull(message = "employmentYear:should be not null")@Positive @JsonFormat(pattern = "MM/dd/yyyy")
+
+    private int employmentYear;
+    @NotNull(message = "annualLeave:should be not null")@Positive
+
+    private int annualLeave;
+
+}
+
+/////////
+package com.example.springday03.controoller;
+
+import com.example.springday03.model.Employes;
+import com.example.springday03.model.Park;
+import com.example.springday03.model.RequstApi;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+
+@RestController
+@RequestMapping("api/v1/employes")
+public class Employescontrooller {
+
+    ArrayList<Employes> employes = new ArrayList<>();
+
+    @GetMapping
+    public ResponseEntity<ArrayList<Employes>> getEmployes() {
+        return ResponseEntity.status(400).body(employes);
+    }
+
+    @PostMapping
+    public ResponseEntity addEmploys(@RequestBody @Valid Employes e, Errors errors) {
+        if (errors.hasErrors()) {
+            return ResponseEntity.status(400).body(errors.getFieldError().getDefaultMessage());
+        }
+        employes.add(e);
+        return ResponseEntity.status(200).body(new RequstApi("add new employs", 200));
+    }
+
+    @PutMapping("/{index}")
+    public ResponseEntity editEmploys(@PathVariable int index, @RequestBody Employes e) {
+
+        if (index > employes.size() - 1 || index < 1)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RequstApi("invalid id", 400));
+        else
+            employes.set(index, e);
+        return ResponseEntity.status(201).body(new RequstApi("update employee", 201));
+    }
+
+    @DeleteMapping("/{index}")
+    public ResponseEntity<RequstApi> deleteEmploys(@PathVariable Integer index) {
+        if (index > employes.size() - 1 || index < 1)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RequstApi("invalid index", 400));
+        else
+            employes.remove((int) index);
+        return ResponseEntity.status(200).body(new RequstApi("delete Employs" + index, 200));
+    }
+
+    @PutMapping("/checkVaction/{id}")
+    public ResponseEntity checkVaction(@PathVariable int id, @RequestBody Employes e) {
+        for (Employes em : employes) {
+            if (em.getId().equals(id)){
+                if (e.getAnnualLeave()== 0) {
+                    return ResponseEntity.status(400).body(new RequstApi("you can't order vacation", 400));
+                }
+
+                e.setOnLeave(true);
+                e.setAnnualLeave(e.getAnnualLeave()-1);
+                return ResponseEntity.status(200).body(new RequstApi("add new order", 200));
+            }
+        }
+        return ResponseEntity.status(400).body(" already to annual leave");
+
+    }
+
